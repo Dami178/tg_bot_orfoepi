@@ -2,8 +2,7 @@ from telebot import types
 import telebot
 import config
 from telebot.async_telebot import AsyncTeleBot
-import keyboard as keyb
-import pyperclip
+
 import random as rnd
 import op
 
@@ -13,7 +12,8 @@ import op
 slova_pep={
     
 }
-
+# markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+# markup.add(types.KeyboardButton('reset'))
 
 start_keyboard=types.InlineKeyboardMarkup()
 start_keyboard.row(
@@ -31,15 +31,22 @@ repeat_keyboard.row(
 bot = AsyncTeleBot(config.Token)
 
 list_slov=op.a
-
+list_pepa=set()
 
 
 
 @bot.message_handler(commands=['start'])
 async def start(message):
     slova_pep[message.chat.id]={}
-    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️',reply_markup=start_keyboard)
+    list_pepa.add(message.chat.username)
+    print(list_pepa)
     
+    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n Для того чтобы сбросить решенные задания напишите /start',reply_markup=start_keyboard)
+    
+    
+
+
+
 
 @bot.callback_query_handler(func=lambda callback:'run' in callback.data)
 async def sort(callback):
@@ -171,6 +178,8 @@ async def corrections(callback):
 
         if type(list_wrong)==str:
             await bot.send_message(callback.message.chat.id,text='Все слова исправлены \n Для того чтобы решать ещё раз напишите /start')
+            print(slova_pep[callback.message.chat.id])
+            slova_pep[callback.message.chat.id]={}
             
         else:
             list_wrong=list_wrong[1:-1]
