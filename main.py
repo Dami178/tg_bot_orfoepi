@@ -15,8 +15,7 @@ list_wrong={
 slova_pep={
 
 }
-# markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-# markup.add(types.KeyboardButton('reset'))
+
 
 start_keyboard=types.InlineKeyboardMarkup()
 start_keyboard.row(
@@ -37,12 +36,41 @@ list_slov=op.a
 list_pepa=set()
 
 
+@bot.message_handler(commands=['list'])
+async def start(message):
+    if message.chat.id==1037060726:
+         await bot.send_message(message.chat.id,text=f'{list_pepa}')
+         await bot.send_message(message.chat.id,text=f'{slova_pep}')
+
+@bot.message_handler(commands=['restart'])
+async def start(message):
+    if message.chat.id==1037060726:
+        a=open('slova_p.txt','w')
+         
+        a.write(f'{slova_pep}')
+        
+        await bot.send_message(message.chat.id,text=f'Данные сохранены можете запускать рестарт! Когда перезапустите сервер напишите /return')
+
+@bot.message_handler(commands=['return'])
+async def start(message):
+    if message.chat.id==1037060726:
+        a=open('slova_p.txt','r').readline()
+         
+        l=eval(a)
+        
+        global slova_pep
+
+        slova_pep=l
+        
+        await bot.send_message(message.chat.id,text=f'Рестарт окончен, все данные возращены!')
+
 
 @bot.message_handler(commands=['start'])
 async def start(message):
+    
     slova_pep[message.chat.id]={}
     list_pepa.add(message.chat.username)
-    print(list_pepa)
+    
 
     await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n Для того чтобы сбросить решенные задания напишите /start',reply_markup=start_keyboard)
 
@@ -125,7 +153,7 @@ async def check(callback):
         await bot.send_message(callback.message.chat.id,text='Какое произношение правильное? 🤔🔠',reply_markup=word_keyboard)
 
 
-#Прорешивание ОШИБОК
+
 @bot.callback_query_handler(func=lambda callback:'yes' in callback.data or 'no' in callback.data )
 async def pepa(callback):
 
@@ -133,26 +161,30 @@ async def pepa(callback):
 
         if callback.data=='yes':
             lsit_wrong=[]
+            
+            
+            
             for i in slova_pep[callback.message.chat.id]:
                 if slova_pep[callback.message.chat.id][i]==0:
                     lsit_wrong.append(i)
+            
             list_wrong[callback.message.chat.id]=lsit_wrong
-            print('lsit_wrong',lsit_wrong)
+            
 
-
-
+        
+        
         if len(list_wrong[callback.message.chat.id])==0:
-            await bot.send_message(callback.message.chat.id,text='Все слова приволб',reply_markup=word_keyboard)
-
-        print(list_wrong)
-
+            await bot.send_message(callback.message.chat.id,text='Все слова правильно .\nДля того чтобы решать ещё раз напишите /start')
+        
+        
+    
 
         rand=rnd.randint(0,1)
         rand_2=1 if rand==0 else 0
 
 
-        word=list_slov[list_wrong[callback.message.chat.id][0]]
-        print('word',word)
+        word=list_slov[ list_wrong[callback.message.chat.id][0] ]
+        
 
 
         word_keyboard=types.InlineKeyboardMarkup()
@@ -176,22 +208,21 @@ async def corrections(callback):
     s=callback.data[1:]
 
     a=s.split(' ')
-    print('s',s)
-    print('Проверка',a)
+    
 
-
+    
     if a[0]==a[1]:
 
         await bot.send_message(callback.message.chat.id,text='Верно!✅ Так держать! 💪✨')
-        print('После верно',list_wrong[callback.message.chat.id])
+        
 
         list_wrong[callback.message.chat.id]=list_wrong[callback.message.chat.id][1:]
 
-        print('После уменьшения',list_wrong[callback.message.chat.id])
+        
 
         if len(list_wrong[callback.message.chat.id])==0:
             await bot.send_message(callback.message.chat.id,text='Все слова исправлены \n Для того чтобы решать ещё раз напишите /start')
-
+            
             slova_pep[callback.message.chat.id]={}
 
         else:
