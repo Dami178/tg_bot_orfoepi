@@ -4,9 +4,12 @@ import config
 from telebot.async_telebot import AsyncTeleBot
 
 
-import random as rnd
+import random 
 import op
 
+task_pep={
+
+}
 
 list_wrong={
 
@@ -47,22 +50,95 @@ async def start(message):
     if message.chat.id==1037060726:
         a=open('slova_p.txt','w')
          
-        a.write(f'{slova_pep}')
+        a.write(f'{slova_pep}\n')
+        a.write(f'{list_pepa}\n')
+        a.write(f'{task_pep}')
         
         await bot.send_message(message.chat.id,text=f'Данные сохранены можете запускать рестарт! Когда перезапустите сервер напишите /return')
 
 @bot.message_handler(commands=['return'])
 async def start(message):
     if message.chat.id==1037060726:
-        a=open('slova_p.txt','r').readline()
-         
-        l=eval(a)
+        file=open('slova_p.txt','r').readlines()
+        
+        a=file[0][:-1]
+        b=file[1][:-1]
+        c=file[2]
+        
+        
         
         global slova_pep
+        global list_pepa
+        global task_pep
 
-        slova_pep=l
+        
+        slova_pep=eval(a)
+        list_pepa= eval(b)
+        task_pep=eval(c)
         
         await bot.send_message(message.chat.id,text=f'Рестарт окончен, все данные возращены!')
+
+@bot.message_handler(commands=['task'])
+async def task(message):
+    k = random.randint(2,4)
+    a=[]
+    for i in range(5):
+        kda=random.randint(0,len(list_slov)-1)
+        while kda  in a:
+            kda=random.randint(0,len(list_slov)-1)
+        a.append(kda)
+
+    
+    
+    list_task=[]
+    for i in range(k):
+        p=random.choice(a)
+
+        list_task.append(list_slov[p][0])
+        a.remove(p)
+    
+    dont_edit=list_task[:]
+    for i in a:
+        
+        list_task.append(list_slov[i][1])
+    
+
+    random.shuffle(list_task)
+
+    correct_answer=''
+
+    for i in dont_edit:
+
+        correct_answer+=f"{list_task.index(i)+1}"
+
+    correct_answer=''.join(sorted(correct_answer))
+
+    
+    for i in range(len(list_task)):
+
+        list_task[i]=f'{i+1}) {list_task[i]}\n'
+    
+    s=''.join(list_task)
+
+    print('corr',correct_answer)
+    print(list_task)
+
+    task_pep[message.chat.id]=correct_answer
+    await bot.send_message(message.chat.id,text=f'Укажите варианты ответов, в которых верно выделена буква, обозначающая ударный гласный звук. Запишите номера ответов \n \n'+
+                        f'{s} \n '+ 
+                        
+                        'Для того чтобы прекратить напишите /start')
+
+
+
+@bot.message_handler(func=lambda message: '1' in message.text or '2' in message.text or '3' in message.text or '4' in message.text)
+async def prov(message):
+    
+    if task_pep[message.chat.id]==message.text:
+        await bot.send_message(message.chat.id,text=f'Правильно!')
+    else:
+        await bot.send_message(message.chat.id,text=f'Не верно! Правильный ответ: {task_pep[message.chat.id]}')
+    await task(message)
 
 
 @bot.message_handler(commands=['start'])
@@ -72,7 +148,7 @@ async def start(message):
     list_pepa.add(message.chat.username)
     
 
-    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n Для того чтобы сбросить решенные задания напишите /start',reply_markup=start_keyboard)
+    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n \nНовинка: Для того чтобы решать задания ЕГЭ напишите /task \n  \n Для того чтобы сбросить решенные слова напишите /start',reply_markup=start_keyboard)
 
 
 
@@ -83,7 +159,7 @@ async def start(message):
 async def sort(callback):
 
     if callback.data in 'run':
-        chs=rnd.randint(0,len(list_slov)-1)
+        chs=random.randint(0,len(list_slov)-1)
 
 
         slova_pep[callback.message.chat.id][chs]=0
@@ -92,7 +168,7 @@ async def sort(callback):
 
         word=list_slov[chs]
 
-        rand=rnd.randint(0,1)
+        rand=random.randint(0,1)
         rand_2=1 if rand==0 else 0
 
         word_keyboard=types.InlineKeyboardMarkup()
@@ -124,7 +200,7 @@ async def check(callback):
 
 
 
-    chs=rnd.randint(0,len(list_slov)-1)
+    chs=random.randint(0,len(list_slov)-1)
     while chs in slova_pep[callback.message.chat.id]:
         if len(slova_pep[callback.message.chat.id])==len(list_slov):
 
@@ -133,7 +209,7 @@ async def check(callback):
             await bot.send_message(callback.message.chat.id,text=f'Прорешаем слова в которых были ошибки?',reply_markup=repeat_keyboard)
             break
 
-        chs=rnd.randint(0,len(list_slov)-1)
+        chs=random.randint(0,len(list_slov)-1)
 
     if chs not in slova_pep[callback.message.chat.id]:
 
@@ -142,7 +218,7 @@ async def check(callback):
 
         word=list_slov[chs]
 
-        rand=rnd.randint(0,1)
+        rand=random.randint(0,1)
         rand_2=1 if rand==0 else 0
 
         word_keyboard=types.InlineKeyboardMarkup()
@@ -179,7 +255,7 @@ async def pepa(callback):
         
     
 
-        rand=rnd.randint(0,1)
+        rand=random.randint(0,1)
         rand_2=1 if rand==0 else 0
 
 
