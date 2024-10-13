@@ -38,6 +38,13 @@ bot = AsyncTeleBot(config.Token)
 list_slov=op.a
 list_pepa=set()
 
+@bot.message_handler(commands=['clear'])
+async def start(message):
+    
+    slova_pep[message.chat.id]={}
+    await start(message)
+    
+
 
 @bot.message_handler(commands=['list'])
 async def start(message):
@@ -143,12 +150,13 @@ async def prov(message):
 
 @bot.message_handler(commands=['start'])
 async def start(message):
-    
-    slova_pep[message.chat.id]={}
+    if message.chat.id not in slova_pep:
+        
+        slova_pep[message.chat.id]={}
     list_pepa.add(message.chat.username)
     
 
-    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n \nНовинка: Для того чтобы решать задания ЕГЭ напишите /task \n  \n Для того чтобы сбросить решенные слова напишите /start',reply_markup=start_keyboard)
+    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n \nНовинка: Для того чтобы решать задания ЕГЭ напишите /task \n  \n Для того чтобы сбросить решенные слова напишите /clear',reply_markup=start_keyboard)
 
 
 
@@ -250,7 +258,7 @@ async def pepa(callback):
         
         
         if len(list_wrong[callback.message.chat.id])==0:
-            await bot.send_message(callback.message.chat.id,text='Все слова правильно .\nДля того чтобы решать ещё раз напишите /start')
+            await bot.send_message(callback.message.chat.id,text='Все слова правильно .\nДля того чтобы решать ещё раз напишите /clear')
         
         
     
@@ -274,7 +282,7 @@ async def pepa(callback):
 
 
     else:
-        await bot.send_message(callback.message.chat.id,text='Для того чтобы начать заново напишите /start')
+        await bot.send_message(callback.message.chat.id,text='Для того чтобы начать заново напишите /clear')
 
 
 
@@ -297,7 +305,7 @@ async def corrections(callback):
         
 
         if len(list_wrong[callback.message.chat.id])==0:
-            await bot.send_message(callback.message.chat.id,text='Все слова исправлены \n Для того чтобы решать ещё раз напишите /start')
+            await bot.send_message(callback.message.chat.id,text='Все слова исправлены \n Для того чтобы решать ещё раз напишите /clear')
             
             slova_pep[callback.message.chat.id]={}
 
