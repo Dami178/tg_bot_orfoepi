@@ -10,6 +10,9 @@ import op
 task_pep={
 
 }
+correct_task={
+
+}
 
 list_wrong={
 
@@ -40,7 +43,7 @@ list_pepa=set()
 
 @bot.message_handler(commands=['clear'])
 async def start(message):
-    
+
     slova_pep[message.chat.id]={}
     await start(message)
     
@@ -49,8 +52,21 @@ async def start(message):
 @bot.message_handler(commands=['list'])
 async def start(message):
     if message.chat.id==1037060726:
-         await bot.send_message(message.chat.id,text=f'{list_pepa}')
-         await bot.send_message(message.chat.id,text=f'{slova_pep}')
+        
+        s=''
+        for i in list_pepa:s+=i
+        
+        await bot.send_message(message.chat.id,text=s)
+        a= [f'{i} : {len([slova_pep[i][n] for n in slova_pep[i] if slova_pep[i][n]==1])} / {len(slova_pep[i])-1}'  for i in slova_pep]
+        sk=''
+        # await bot.send_message(message.chat.id,text=f'{slova_pep}') 
+        for i in a:sk+=f'{i}\n'
+        await bot.send_message(message.chat.id,text=f'{sk}') 
+        sks=''
+        
+        for i in correct_task:sks+=f'{i} : {correct_task[i]}\n'
+        await bot.send_message(message.chat.id,text=f'{sks}') 
+
 
 @bot.message_handler(commands=['restart'])
 async def start(message):
@@ -59,7 +75,8 @@ async def start(message):
          
         a.write(f'{slova_pep}\n')
         a.write(f'{list_pepa}\n')
-        a.write(f'{task_pep}')
+        a.write(f'{task_pep}\n')
+        a.write(f'{correct_task}')
         
         await bot.send_message(message.chat.id,text=f'Данные сохранены можете запускать рестарт! Когда перезапустите сервер напишите /return')
 
@@ -70,23 +87,40 @@ async def start(message):
         
         a=file[0][:-1]
         b=file[1][:-1]
-        c=file[2]
+        c=file[2][:-1]
+        d=file[3]
         
         
         
         global slova_pep
         global list_pepa
         global task_pep
+        global correct_task
 
         
         slova_pep=eval(a)
         list_pepa= eval(b)
         task_pep=eval(c)
+        correct_task=eval(d)
+        
         
         await bot.send_message(message.chat.id,text=f'Рестарт окончен, все данные возращены!')
-
+@bot.message_handler(commands=['check'])
+async def check(message):
+    
+    
+    
+    
+    sk=f'Слова : {len([slova_pep[message.chat.id][n] for n in slova_pep[message.chat.id] if slova_pep[message.chat.id][n]==1])} / {len(slova_pep[message.chat.id])-1}'
+    await bot.send_message(message.chat.id,text=f'{sk}') 
+    
+    sks= f'Задания из ЕГЭ : {correct_task[message.chat.id]}'
+    
+    await bot.send_message(message.chat.id,text=sks)
 @bot.message_handler(commands=['task'])
 async def task(message):
+    
+    
     k = random.randint(2,4)
     a=[]
     for i in range(5):
@@ -127,8 +161,7 @@ async def task(message):
     
     s=''.join(list_task)
 
-    print('corr',correct_answer)
-    print(list_task)
+    
 
     task_pep[message.chat.id]=correct_answer
     await bot.send_message(message.chat.id,text=f'Укажите варианты ответов, в которых верно выделена буква, обозначающая ударный гласный звук. Запишите номера ответов \n \n'+
@@ -140,23 +173,50 @@ async def task(message):
 
 @bot.message_handler(func=lambda message: '1' in message.text or '2' in message.text or '3' in message.text or '4' in message.text)
 async def prov(message):
+    znach=correct_task[message.chat.id]
     
     if task_pep[message.chat.id]==message.text:
+        
+        
+        
+        if znach=='':
+            correct_task[message.chat.id]='1/1'
+
+        else:
+            correct_task[message.chat.id]=f'{int(znach[0])+1}/{int(znach[2])+1}'
+            
+        
+        
         await bot.send_message(message.chat.id,text=f'Правильно!')
     else:
+        
+        if znach=='':
+            correct_task[message.chat.id]='0/1'
+
+        else:
+            correct_task[message.chat.id]=f'{int(znach[0])}/{int(znach[2])+1}'
         await bot.send_message(message.chat.id,text=f'Не верно! Правильный ответ: {task_pep[message.chat.id]}')
     await task(message)
 
 
 @bot.message_handler(commands=['start'])
 async def start(message):
+    
+    global list_pepa
+
+
+    correct_task.setdefault(message.chat.id,'')
+    
+    
+    
     if message.chat.id not in slova_pep:
         
         slova_pep[message.chat.id]={}
-    list_pepa.add(message.chat.username)
+    if f'{message.chat.id}' not in list_pepa:
+        list_pepa.add(f'{message.chat.id} : @{message.chat.username }\n' if f'{message.chat.username}' !='None' else f'{message.chat.id} : {message.chat.first_name}\n')
     
 
-    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n \nНовинка: Для того чтобы решать задания ЕГЭ напишите /task \n  \n Для того чтобы сбросить решенные слова напишите /clear',reply_markup=start_keyboard)
+    await bot.send_message(message.chat.id,text='Тренируй свою грамотность с этим ботом! ✍️📚 \nПроверяй знания орфоэпии и улучшай произношение сложных слов. 🔤🗣️\n\n Рекомендую подписаться на @orphoepi, чтобы быть в курсе всех новостей.\n\n Напиши /check и узнай свои результаты \n\n Новинка: Для того чтобы решать задания ЕГЭ напишите /task \n  \n Для того чтобы сбросить решенные слова напишите /clear',reply_markup=start_keyboard)
 
 
 
